@@ -23,6 +23,7 @@ class CreateContract;
 class SendToContract;
 class CallContract;
 class QRCToken;
+class MultiSignPage;
 
 QT_BEGIN_NAMESPACE
 class QModelIndex;
@@ -73,6 +74,9 @@ private:
     CallContract* callContractPage;
     QRCToken* QRCTokenPage;
 
+    //@lq
+    MultiSignPage *multiSignPage;
+
     TransactionView *transactionView;
 
     QProgressDialog *progressDialog;
@@ -99,6 +103,10 @@ public Q_SLOTS:
     void gotoReceiveTokenPage();
     /** Switch to Add Token page */
     void gotoAddTokenPage();
+    //@lq
+    /**  Switch to multisign page */
+    void gotoMultiSignPage();
+
 
     /** Show Sign/Verify Message dialog and switch to sign message tab */
     void gotoSignMessageTab(QString addr = "");

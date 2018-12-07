@@ -60,6 +60,10 @@
 #include <QVBoxLayout>
 #include <QDockWidget>
 #include <QSizeGrip>
+#include <QInputDialog>
+#include <QDir>
+#include <qt/multisignpage.h>
+
 
 #if QT_VERSION < 0x050000
 #include <QTextDocument>
@@ -143,6 +147,7 @@ BitcoinGUI::BitcoinGUI(const PlatformStyle *_platformStyle, const NetworkStyle *
     modalBackupOverlay(0),
     prevBlocks(0),
     spinnerFrame(0),
+    multiSignAction(0),
     platformStyle(_platformStyle)
 {
     QSettings settings;
@@ -385,6 +390,14 @@ void BitcoinGUI::createActions()
     QRCTokenAction->setCheckable(true);
     QRCTokenAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
     tabGroup->addAction(QRCTokenAction);
+    
+    //@lq
+    multiSignAction = new QAction(platformStyle->MultiStatesIcon(":/icons/key"), tr("&MultiSign"), this);
+    multiSignAction->setStatusTip(tr("MultiSign"));
+    multiSignAction->setToolTip(multiSignAction->statusTip());
+    multiSignAction->setCheckable(true);
+    multiSignAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_7));
+    tabGroup->addAction(multiSignAction);
 
     sendTokenAction = new QAction(tr("Send"), this);
     receiveTokenAction = new QAction(tr("Receive"), this);
@@ -417,6 +430,9 @@ void BitcoinGUI::createActions()
     connect(receiveTokenAction, SIGNAL(triggered()), this, SLOT(gotoReceiveTokenPage()));
     connect(addTokenAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(addTokenAction, SIGNAL(triggered()), this, SLOT(gotoAddTokenPage()));
+    //@lq
+    connect(multiSignAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(multiSignAction, SIGNAL(triggered()), this, SLOT(gotoMultiSignPage()));
 #endif // ENABLE_WALLET
 
     quitAction = new QAction(platformStyle->MenuColorIcon(":/icons/quit"), tr("E&xit"), this);
@@ -456,6 +472,12 @@ void BitcoinGUI::createActions()
     verifyMessageAction = new QAction(platformStyle->MenuColorIcon(":/icons/verify"), tr("&Verify message..."), this);
     verifyMessageAction->setStatusTip(tr("Verify messages to ensure they were signed with specified Qtum addresses"));
 
+    //@lq
+    setEmail = new QAction(platformStyle->MenuColorIcon(":/icons/edit"), tr("&Set Email..."),this);
+    setEmail->setStatusTip("Set the email address");
+    setEmail->setCheckable(true);
+
+
     openRPCConsoleAction = new QAction(platformStyle->MenuColorIcon(":/icons/debugwindow"), tr("&Debug window"), this);
     openRPCConsoleAction->setStatusTip(tr("Open debugging and diagnostic console"));
     // initially disable the debug window menu item
@@ -482,6 +504,7 @@ void BitcoinGUI::createActions()
     connect(openRPCConsoleAction, SIGNAL(triggered()), this, SLOT(showDebugWindow()));
     // prevents an open debug window from becoming stuck/unusable on client shutdown
     connect(quitAction, SIGNAL(triggered()), rpcConsole, SLOT(hide()));
+    connect(setEmail, SIGNAL(triggered()), this, SLOT(showSetEmailDialog()));
 
 #ifdef ENABLE_WALLET
     if(walletFrame)
@@ -540,7 +563,7 @@ void BitcoinGUI::createMenuBar()
         settings->addSeparator();
     }
     settings->addAction(optionsAction);
-
+    settings->addAction(setEmail);
     QMenu *help = appMenuBar->addMenu(tr("&Help"));
     if(walletFrame)
     {
@@ -565,6 +588,7 @@ void BitcoinGUI::createToolBars()
         appNavigationBar->addAction(sendCoinsAction);
         appNavigationBar->addAction(receiveCoinsAction);
         appNavigationBar->addAction(historyAction);
+        appNavigationBar->addAction(multiSignAction);
         QList<QAction*> contractActions;
         contractActions.append(createContractAction);
         contractActions.append(sendToContractAction);
@@ -702,6 +726,7 @@ void BitcoinGUI::setWalletActionsEnabled(bool enabled)
     usedSendingAddressesAction->setEnabled(enabled);
     usedReceivingAddressesAction->setEnabled(enabled);
     openAction->setEnabled(enabled);
+    multiSignAction->setEnabled(enabled);
 }
 
 void BitcoinGUI::createTrayIcon(const NetworkStyle *networkStyle)
@@ -880,6 +905,12 @@ void BitcoinGUI::gotoSignMessageTab(QString addr)
 void BitcoinGUI::gotoVerifyMessageTab(QString addr)
 {
     if (walletFrame) walletFrame->gotoVerifyMessageTab(addr);
+}
+//@lq
+void BitcoinGUI::gotoMultiSignPage()
+{
+    multiSignAction->setChecked(true);
+    if (walletFrame)    walletFrame->gotoMultiSignPage(); 
 }
 #endif // ENABLE_WALLET
 
@@ -1504,6 +1535,50 @@ void BitcoinGUI::addDockWindows(Qt::DockWidgetArea area, QWidget* widget)
     dock->setWidget(widget);
     addDockWidget(area, dock);
 }
+//set email address
+void BitcoinGUI::showSetEmailDialog()
+{
+    QString server,address,passwd;
+    //read
+    QString cfgPath = QDir::homePath() + "/email.ini";
+    QFile f(cfgPath);
+    if(f.open(QIODevice::ReadOnly)){
+         int i = 1;
+	QByteArray line;
+         while(!f.atEnd()){
+/*
+             if(i==1){
+                  QByteArray t= f.readLine();
+                  server = QString(t).mid(7);
+             }
+	     if(i==2){
+                  QByteArray t= f.readLine();
+                  address = QString(t).mid(8);
+             }
+             if(i==3){
+                  QByteArray t= f.readLine();
+                  passwd = QString(t).mid(7);
+             }
+     	     i++;
+*/
+	     line = f.readLine();
+	     if(QString(line).startsWith("server=")){
+                 server = QString(line).mid(7);
+             }
+             if(QString(line).startsWith("address=")){
+                 address = QString(line).mid(8);
+             }
+             if(QString(line).startsWith("passwd=")){
+                 passwd = QString(line).mid(7);
+             }
+         }
+    }
+    f.close();
+    //set
+    SetEmailDialog s(server,address,passwd,this);
+    s.exec();
+    //display  
+}
 
 UnitDisplayStatusBarControl::UnitDisplayStatusBarControl(const PlatformStyle *platformStyle) :
     optionsModel(0),
@@ -1576,4 +1651,79 @@ void UnitDisplayStatusBarControl::onMenuSelection(QAction* action)
     {
         optionsModel->setDisplayUnit(action->data());
     }
+}
+
+//class setemaildialog
+SetEmailDialog::SetEmailDialog(QString _server,QString _account,QString _passwd,QWidget *parent) :
+    QDialog(parent),
+    m_server(_server),
+    m_account(_account),
+    m_passwd(_passwd)
+{
+    this->setWindowTitle(tr("SET   EMAIL"));
+    server = new QLabel(this);
+    server->setGeometry(20,20,100,25);
+    server->setText(tr("IMAP SERVER: "));
+    account = new QLabel(this);
+    account->setGeometry(20,60,100,25);
+    account->setText(tr("EMAIL ADDRESS: "));
+    passwd = new QLabel(this);
+    passwd->setText(tr("AHTH CODE  : "));
+    passwd->setGeometry(20,100,100,25);
+
+    ok = new QPushButton(this);
+    ok->setText(tr("OK"));
+    ok->setGeometry(210,140,61,25);
+    cancle = new QPushButton(this);
+    cancle->setText(tr("CANCLE"));
+    cancle->setGeometry(100,140,61,25);
+    serverLineEdit = new QLineEdit(this);
+    serverLineEdit->setGeometry(150,20,201,25);
+    serverLineEdit->setText(m_server);
+    accountLineEdit = new QLineEdit(this);
+    accountLineEdit->setGeometry(150,60,201,25);
+    accountLineEdit->setText(m_account);
+    passwdLineEdit = new QLineEdit(this);
+    passwdLineEdit->setEchoMode(QLineEdit::Password);
+    passwdLineEdit->setGeometry(150,100,201,25);
+    passwdLineEdit->setText(m_passwd);
+
+    connect(ok,&QPushButton::clicked,this,&SetEmailDialog::doProcessOk);
+    connect(cancle,&QPushButton::clicked,this,&SetEmailDialog::doProcessCancle);
+
+    this->resize(400,200);
+}
+SetEmailDialog::~SetEmailDialog()
+{
+
+}
+void SetEmailDialog::setInfo(QString _server, QString _account, QString _passwd)
+{
+    m_server = _server;
+    m_account = _account;
+    m_passwd = _passwd;
+}
+void SetEmailDialog::doProcessOk()
+{
+    //read
+    QString server = this->serverLineEdit->text();
+    server = "server=" + server.trimmed().append("\n");
+    QString address = this->accountLineEdit->text();
+    address = "address=" + address.trimmed().append("\n");
+    QString passwd = this->passwdLineEdit->text();
+    passwd = "passwd=" + passwd.trimmed().append("\n");
+    //write to config file
+    QString cfgPath = QDir::homePath() + "/email.ini";
+    QFile f(cfgPath);
+    if(!f.open(QIODevice::WriteOnly)){
+        return;
+    }
+    QByteArray b = (server+address+passwd).toLatin1();
+    f.write(b,b.size());
+    f.close();
+    this->close();
+}
+void SetEmailDialog::doProcessCancle()
+{
+    this->close();
 }

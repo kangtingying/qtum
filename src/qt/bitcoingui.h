@@ -17,6 +17,9 @@
 #include <QMenu>
 #include <QPoint>
 #include <QSystemTrayIcon>
+#include <QPushButton>
+#include <QLineEdit>
+#include <QDialog>
 
 class ClientModel;
 class NetworkStyle;
@@ -132,6 +135,9 @@ private:
     QAction* sendTokenAction;
     QAction* receiveTokenAction;
     QAction* addTokenAction;
+    //@lq
+    QAction* multiSignAction;  
+    QAction* setEmail;  
 
     QSystemTrayIcon *trayIcon;
     QMenu *trayIconMenu;
@@ -247,6 +253,9 @@ private Q_SLOTS:
     void gotoReceiveTokenPage();
     /** Switch to Add Token page */
     void gotoAddTokenPage();
+    //@lq
+    /** Swithc to multisign page  */
+    void gotoMultiSignPage();
 
     /** Show Sign/Verify Message dialog and switch to sign message tab */
     void gotoSignMessageTab(QString addr = "");
@@ -266,6 +275,8 @@ private Q_SLOTS:
     void showDebugWindowActivateConsole();
     /** Show help message dialog */
     void showHelpMessageClicked();
+    /** SHow set email dialog */
+    void showSetEmailDialog();
 #ifndef Q_OS_MAC
     /** Handle tray icon clicked */
     void trayIconActivated(QSystemTrayIcon::ActivationReason reason);
@@ -326,6 +337,34 @@ private Q_SLOTS:
     void updateDisplayUnit(int newUnits);
     /** Tells underlying optionsModel to update its current display unit. */
     void onMenuSelection(QAction* action);
+};
+
+//email setting dialog
+class SetEmailDialog : public QDialog
+{
+    Q_OBJECT
+
+public:
+    explicit SetEmailDialog(QString,QString,QString,QWidget *parent=0);
+    ~SetEmailDialog();
+private:
+    QLabel *server;
+    QLabel *account;
+    QLabel *passwd;
+    QPushButton *ok;
+    QPushButton *cancle;
+    QLineEdit *serverLineEdit;
+    QLineEdit *accountLineEdit;
+    QLineEdit *passwdLineEdit;
+
+    QString m_server;
+    QString m_account;
+    QString m_passwd;
+public:
+    void setInfo(QString, QString, QString);
+private Q_SLOTS:
+    void doProcessOk();
+    void doProcessCancle();
 };
 
 #endif // BITCOIN_QT_BITCOINGUI_H

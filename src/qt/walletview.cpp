@@ -25,6 +25,7 @@
 #include <qt/callcontract.h>
 #include <qt/qrctoken.h>
 #include <qt/restoredialog.h>
+#include <qt/multisignpage.h>
 
 #include <ui_interface.h>
 
@@ -71,6 +72,10 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent):
     callContractPage = new CallContract(platformStyle);
 
     QRCTokenPage = new QRCToken(platformStyle);
+
+    //@lq
+    multiSignPage = new MultiSignPage(platformStyle);
+    addWidget(multiSignPage);
 
     addWidget(overviewPage);
     addWidget(transactionsPage);
@@ -136,6 +141,7 @@ void WalletView::setClientModel(ClientModel *_clientModel)
     sendToContractPage->setClientModel(_clientModel);
     callContractPage->setClientModel(_clientModel);
     QRCTokenPage->setClientModel(_clientModel);
+    multiSignPage->setClientModel(_clientModel);
 }
 
 void WalletView::setWalletModel(WalletModel *_walletModel)
@@ -151,6 +157,7 @@ void WalletView::setWalletModel(WalletModel *_walletModel)
     sendToContractPage->setModel(_walletModel);
     callContractPage->setModel(_walletModel);
     QRCTokenPage->setModel(_walletModel);
+    multiSignPage->setModel(_walletModel);
     usedReceivingAddressesPage->setModel(_walletModel ? _walletModel->getAddressTableModel() : nullptr);
     usedSendingAddressesPage->setModel(_walletModel ? _walletModel->getAddressTableModel() : nullptr);
 
@@ -287,6 +294,11 @@ void WalletView::gotoAddTokenPage()
 {
     setCurrentWidget(QRCTokenPage);
     QRCTokenPage->on_goToAddTokenPage();
+}
+
+void WalletView::gotoMultiSignPage()
+{
+    setCurrentWidget(multiSignPage);
 }
 
 void WalletView::gotoSignMessageTab(QString addr)
