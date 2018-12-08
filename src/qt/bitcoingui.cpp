@@ -392,7 +392,7 @@ void BitcoinGUI::createActions()
     tabGroup->addAction(QRCTokenAction);
     
     //@lq
-    multiSignAction = new QAction(platformStyle->MultiStatesIcon(":/icons/key"), tr("&MultiSign"), this);
+    multiSignAction = new QAction(platformStyle->MultiStatesIcon(":/icons/key"), tr("&Sat MultiSign"), this);
     multiSignAction->setStatusTip(tr("MultiSign"));
     multiSignAction->setToolTip(multiSignAction->statusTip());
     multiSignAction->setCheckable(true);

@@ -23,7 +23,7 @@
     </rect>
    </property>
    <property name="title">
-    <string>生成多签地址</string>
+    <string>合成多签地址</string>
    </property>
    <widget class="QLineEdit" name="importLineEdit">
     <property name="geometry">
@@ -53,12 +53,12 @@
      <rect>
       <x>330</x>
       <y>150</y>
-      <width>101</width>
+      <width>131</width>
       <height>28</height>
      </rect>
     </property>
     <property name="text">
-     <string>生成多签地址</string>
+     <string>合成多签地址</string>
     </property>
    </widget>
    <widget class="QLabel" name="addressLabel">

@@ -10,7 +10,7 @@
 
 
 #define ATTACHMENTFILEPAT "mg"
-#define SATELLITEEMAIL "362367046@qq.com"
+#define SATELLITEEMAIL "service@spacechain.com"
 
 class ClientModel;
 class PlatformStyle;
